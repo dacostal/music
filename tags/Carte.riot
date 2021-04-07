@@ -1,0 +1,40 @@
+<carte>
+
+<div class="card bg-light mb-4" style="width:252px;height:320px;">
+
+    <!-- Image selon catégorie -->
+    <img class="card-img-top mt-2" if={props.cat == "artists"} src="https://dwarves.iut-fbleau.fr/~dacostal/music/images/artist.svg" width="80" height="80" alt="">
+    <img class="card-img-top" if={props.cat == "releases"} src="http://coverartarchive.org/release/{props.obj.id}/front-250.jpg" 
+        onerror="this.onerror=null; this.src='https://dwarves.iut-fbleau.fr/~dacostal/music/images/album.svg';" height="130" alt="">
+    <img class="card-img-top mt-2" if={props.cat == "recordings"} src="https://dwarves.iut-fbleau.fr/~dacostal/music/images/chanson.svg" width="80" height="80" alt="">
+
+    <!-- Corps de la carte -->
+    <div class="card-body d-flex flex-column">
+
+        <!-- Titre selon catégorie -->
+        <h6 class="card-title" if={props.cat == "artists"}>{props.obj["name"]}</h6>
+        <h6 class="card-title" if={props.cat == "releases" || props.cat == "recordings"}>{props.obj["title"]}</h6>
+
+        <!-- Paragraphe selon catégorie -->
+        <p class="card-text" if={props.cat == "artists" && props.obj["type"]}>Type : {props.obj["type"]}</p>
+        <p class="card-text" if={props.cat == "artists" && props.obj["area"]}>{props.obj["area"]["type"]} : {props.obj["area"]["name"]}</p>
+        <p class="card-text" if={(props.cat == "releases" || props.cat == "recordings") && props.obj["artist-credit"]}>Artiste : {props.obj["artist-credit"][0]["artist"]["name"]}</p>
+
+        <!-- Bouton pour plus d'infos -->
+        <button class="btn btn-dark mt-auto" onclick={clic} type="button">Plus d'informations</button>
+    </div>
+</div>
+
+<script>
+	export default{
+		clic(e){
+			e.preventDefault();
+
+			if(this.props.plus){
+				this.props.plus(this.props.obj["id"]);
+			}
+		}
+	}
+</script>
+
+</carte>

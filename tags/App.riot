@@ -1,0 +1,287 @@
+<app>
+
+<!-- La vue -->
+
+<div if={state.main}>
+
+	<!-- Barre de navigation -->
+
+	<barredemenu recherche={recup}></barredemenu>
+
+	<!-- Contenu principal -->
+
+	<div class="main">
+		<div if={state.accueil}>
+			<p>Bienvenue sur Pineapple Music !</p>
+			<p>Veuillez choisir une <b>catégorie</b> ou faire une <b>recherche</b> précise.</p>
+		</div>
+
+		<!-- Affichage des options de tri -->
+
+		<div if={state.tri}>
+			<h6 if={state.category != "recordings"}>Options de tri : </h6>
+
+			<!-- Options pour les artistes -->
+
+			<select id="selOrdre" class="custom-select" if={state.category == "artists"} onchange={trierArtists}>
+				<option value="default">default</option>
+				<option value="az">a - z</option>
+				<option value="za">z - a</option>
+			</select>
+
+			<!-- Options pour les albums -->
+
+			<select id="selDate" class="custom-select" if={state.category == "releases"} onchange={trierReleases}>
+				<option value="default">default</option>
+				<option value="priorecent">du plus récent au plus ancien</option>
+				<option value="prioancien">du plus ancien au plus récent</option>
+			</select>
+		</div>
+
+		<!-- Affichage du resultat -->
+
+		<div class="card-deck" if={!state.info}>
+			<carte cat={state.category} plus={moreInfo} obj={item} each={item in pagination.resultsPage[pagination.currentPage]}></carte>
+		</div>
+
+		<!-- Affichage des détails d'une entité -->
+
+		<info if={state.info} cat={state.category} rens={state.info} reset={resetInfo}></info>
+
+		<!-- Pagination -->
+
+		<ul class="pagination justify-content-center" if={!state.accueil && !state.info}>
+			<li id="prev" class="page-item" onclick={prevPage}>
+				<a class="page-link" aria-label="Previous">
+					<span aria-hidden="true">&laquo;</span>
+					<span class="sr-only">Previous</span>
+				</a>
+			</li>
+			<li class="page-item number" onclick={goToPage} each={page in pagination.resultsPage}>
+				<a class="page-link">{pagination.resultsPage.indexOf(page)+1}</a>
+			</li>
+			<li id="next" class="page-item" onclick={nextPage}>
+				<a class="page-link" aria-label="Next">
+					<span aria-hidden="true">&raquo;</span>
+					<span class="sr-only">Next</span>
+				</a>
+			</li>
+		</ul>
+	</div>
+
+	<!-- Footer -->
+
+	<basdepage></basdepage>
+</div>
+
+<script>
+	export default{
+		/* Données du controleur */
+
+		state: {
+			main: true,
+			accueil: true,
+			category: "artists",
+			search: "",
+			result: null,
+			info: null,
+			tri: false
+		},
+
+		pagination: {
+			nbResultsPage: 16,
+			currentPage: 0,
+			totalPages: 0,
+			resultsPage: []
+		},
+
+		/* Evenements */
+
+		recup(booleen, selValeur, inputValeur){
+			this.resetResult();
+			this.resetInfo();
+
+			this.state.accueil = booleen;
+			this.state.category = selValeur;
+			this.state.search = inputValeur;
+			this.update();
+
+			//console.log("valeur accueil : " + this.state.accueil);
+			//console.log("valeur category : " + this.state.category);
+			//console.log("valeur search : " + this.state.search);
+
+			this.sa.getListItems(this.state.category, this.state.search).then((data) => {
+				//console.log(data);
+				this.state.result = JSON.parse(JSON.stringify(data[this.state.category]));
+				console.log(this.state.result);
+				this.update();
+				this.createPages();
+
+				this.state.tri = true;
+				this.update();
+			});
+		},
+
+		createPages(){
+			let portion = this.pagination.nbResultsPage;
+			let taille = this.state.result.length;
+
+			this.pagination.totalPages = Math.ceil(taille/this.pagination.nbResultsPage);
+			this.update();
+
+			//console.log("nb d'elements par portion : " + portion);
+			//console.log("nombre de résultats : " + taille);
+			//console.log("nombre de pages : " + this.pagination.totalPages);
+
+			for(let i = 0; i < this.pagination.totalPages; i++){
+				this.pagination.resultsPage[i] = this.state.result.slice(i*portion, (i*portion)+portion);
+			}
+
+			this.update();
+			this.checkPagination();
+			//console.log(this.pagination.resultsPage);
+		},
+
+		prevPage(e){
+			e.preventDefault();
+
+			if(this.pagination.currentPage != 0){
+				this.pagination.currentPage = this.pagination.currentPage-1;
+				this.update();
+			}
+
+			this.checkPagination();
+			//console.log("current apres prev : " + (this.pagination.currentPage+1));
+		},
+
+		nextPage(e){
+			e.preventDefault();
+
+			if(this.pagination.currentPage != this.pagination.totalPages-1){
+				this.pagination.currentPage = this.pagination.currentPage+1;
+				this.update();
+			}
+
+			this.checkPagination();
+			//console.log("current apres next : " + (this.pagination.currentPage+1));
+		},
+
+		goToPage(e){
+			e.preventDefault();
+
+			this.pagination.currentPage = (parseInt(e.target.innerHTML)-1);
+			this.update();
+
+			this.checkPagination();
+			//console.log("current apres go to : " + (this.pagination.currentPage+1));
+		},
+
+		checkPagination(){
+			let current = this.pagination.currentPage;
+
+			$('.number').each(function(index){
+				if(index == current){
+					$(this).addClass('active');
+				}else{
+					if($(this).hasClass('active')){
+						$(this).removeClass('active');
+					}
+				}
+			});
+
+			if(this.pagination.currentPage == 0){
+				$('#prev').addClass('disabled');
+
+				if($('#next').hasClass('disabled')){
+					$('#next').removeClass('disabled');
+				}
+			}
+
+			else if(this.pagination.currentPage == this.pagination.totalPages-1){
+				$('#next').addClass('disabled');
+
+				if($('#prev').hasClass('disabled')){
+					$('#prev').removeClass('disabled');
+				}
+			}
+
+			else{
+				if($('#prev').hasClass('disabled')){
+					$('#prev').removeClass('disabled');
+				}
+
+				if($('#next').hasClass('disabled')){
+					$('#next').removeClass('disabled');
+				}
+			}
+		},
+
+		resetResult(){
+			this.state.result = null;
+			this.pagination.currentPage = 0;
+			this.pagination.totalPages = 0;
+			this.pagination.resultsPage = [];
+			this.update();
+		},
+
+		moreInfo(id){
+			this.sa.getItemInfo(this.state.category, id).then((data) => {
+				console.log(data);
+				this.state.info = JSON.parse(JSON.stringify(data));
+				//console.log(this.state.info);
+				this.update();
+
+				this.state.tri = false;
+				this.update();
+			});
+		},
+
+		resetInfo(){
+			this.state.info = null;
+			this.state.tri = true;
+			this.update();
+			this.checkPagination();
+		},
+
+		trierArtists(e){
+			e.preventDefault();
+
+			if(e.target.value == "default"){
+				this.state.result = Object.values(this.state.result).sort((a, b) => {
+					return b["score"] - a["score"];
+				});
+			}else{
+				this.state.result = Object.values(this.state.result).sort((a, b) => {
+					return a["sort-name"] < b["sort-name"];
+				});
+
+				if(e.target.value == "za"){
+					this.state.result = Object.values(this.state.result).reverse();
+				}
+			}
+
+			console.log(this.state.result);
+			this.createPages();
+		},
+
+		trierReleases(e){
+			e.preventDefault();
+
+			if(e.target.value == "default"){
+				this.state.result = Object.values(this.state.result).sort((a, b) => {
+					return b["score"] - a["score"];
+				});
+			}else{
+				this.state.result = Object.values(this.state.result).sort((a, b) => {
+					return b["date"] - a["date"];
+				});
+
+				if(e.target.value == "prioancien"){
+					this.state.result = Object.values(this.state.result).reverse();
+				}
+			}
+		}
+	}
+</script>
+
+</app>

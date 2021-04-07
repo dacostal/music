@@ -1,0 +1,123 @@
+<info class="ptinfo">
+
+<!-- Informations des artistes -->
+
+<div class="card bg-light" if={props.cat == "artists"}>
+    <h1 class="card-header">Informations</h1>
+    <div class="card-body">
+        <div class="card-title">
+            <h2>{props.rens["name"]}</h2>
+            <h5>{props.rens["type"]}</h5>
+        </div>
+
+        <div class="general" if={props.rens["area"] || props.rens["begin-area"] || props.rens["life-span"]["begin"]}>
+            <p class="card-text" if={props.rens["area"]}>Pays d'origine : {props.rens["area"]["name"]}</p>
+            <p class="card-text" if={props.rens["begin-area"]}>Ville d'origine : {props.rens["begin-area"]["name"]}</p>
+
+            <p class="card-text" if={props.rens["life-span"]["begin"]}>Carrière (ou durée de vie) : 
+                {props.rens["life-span"]["begin"]} - {props.rens["life-span"]["end"] ? props.rens["life-span"]["end"] : '?'}
+            </p>
+        </div>
+
+        <div class="liste" if={props.rens["recordings"][0]}>
+            <h6 class="card-text titre-liste">Chansons</h6>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item" each={recording in props.rens["recordings"]}>
+                    {recording["title"]} ({recording["length"] ? convertToUsual(recording["length"]) : '?'})
+                </li>
+            </ul>
+        </div>
+
+        <div class="liste" if={props.rens["releases"][0]}>
+            <h6 class="card-text titre-liste">Albums</h6>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item" each={release in props.rens["releases"]}>
+                    {release["title"]} ({release["date"] ? release["date"] : '?'})
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="card-footer text-center">
+        <button class="btn btn-dark" onclick={back} type="button">Retour</button>
+    </div>
+</div>
+
+<!-- Informations des albums -->
+
+<div class="card bg-light" if={props.cat == "releases"}>
+    <h1 class="card-header">Informations</h1>
+    <div class="card-body">
+        <div class="card-title">
+            <h2>{props.rens["title"]}</h2>
+            <h5>{props.rens["artist-credit"][0]["artist"]["name"]}</h5>
+        </div>
+
+        <div class="general" if={props.rens["country"] || props.rens["date"] || props.rens["media"][0]["track-count"]}>
+            <p class="card-text" if={props.rens["country"]}>Pays : {props.rens["country"]}</p>
+            <p class="card-text" if={props.rens["date"]}>Date : {props.rens["date"]}</p>
+            <p class="card-text" if={props.rens["media"][0]["track-count"]}>Nombre de chansons : {props.rens["media"][0]["track-count"]}</p>
+        </div>
+
+        <div class="liste" if={props.rens["media"][0]["tracks"][0]}>
+            <h6 class="card-text titre-liste">Chansons</h6>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item" each={recording in props.rens["media"][0]["tracks"]}>
+                    {recording["title"]} ({recording["length"] ? convertToUsual(recording["length"]) : '?'})
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="card-footer text-center">
+        <button class="btn btn-dark" onclick={back} type="button">Retour</button>
+    </div>
+</div>
+
+<!-- Informations des chansons -->
+
+<div class="card bg-light" if={props.cat == "recordings"}>
+    <h1 class="card-header">Informations</h1>
+    <div class="card-body">
+        <div class="card-title">
+            <h2>{props.rens["title"]}</h2>
+            <h5>{props.rens["artist-credit"][0]["artist"]["name"]}</h5>
+        </div>
+
+        <div class="general">
+            <p class="card-text">Longueur : {props.rens["length"] ? convertToUsual(props.rens["length"]) : '?'}</p>
+        </div>
+
+        <div class="liste" if={props.rens["releases"][0]}>
+            <h6 class="card-text titre-liste">Albums</h6>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item" each={release in props.rens["releases"]}>
+                    {release["title"]} ({release["date"] ? release["date"] : '?'})
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="card-footer text-center">
+        <button class="btn btn-dark" onclick={back} type="button">Retour</button>
+    </div>
+</div>
+
+<script>
+    export default{
+        convertToUsual(ms){
+            let minutes = Math.floor(ms/60000);
+            let secondes = ((ms % 60000)/1000).toFixed(0);
+            let str = minutes + ":" + (secondes < 10 ? '0' : '') + secondes;
+
+            return str;
+        },
+
+        back(e){
+            e.preventDefault();
+
+            if(this.props.reset){
+				this.props.reset();
+			}
+        }
+    }
+</script>
+
+</info>

@@ -1,0 +1,45 @@
+<barredemenu>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+
+	<!-- Nom de l'app -->
+
+	<a class="navbar-brand" href="https://dwarves.iut-fbleau.fr/~dacostal/music/">
+		<img class="d-inline-block align-top" src="https://dwarves.iut-fbleau.fr/~dacostal/music/images/pineapple.svg" width="30" height="30" alt="">
+		Pineapple Music
+	</a>
+
+	<div class="collapse navbar-collapse">
+		<ul class="navbar-nav ml-auto mr-sm-2">
+			<li class="nav-item">
+				<form id="form" class="form-inline my-2 my-lg-0" onsubmit={submit}>
+
+					<!-- Selection de la catégorie -->
+
+					<select id="selCat" class="custom-select mr-sm-2">
+						<option each={category in cst.categories} value={category.name}>{category.label}</option>
+					</select>
+
+					<!-- Champ de recherche -->
+
+					<input class="form-control mr-sm-2" type="text" placeholder="Rechercher...">
+					<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Rechercher</button>
+				</form>
+			</li>
+		</ul>
+	</div>
+</nav>
+
+<script>
+	export default{
+		submit(e){
+			e.preventDefault();
+
+			if(this.props.recherche){
+				this.props.recherche(false, this.$('select').value, this.$('input').value);
+			}
+		}
+	}
+</script>
+
+</barredemenu>
